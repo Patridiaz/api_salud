@@ -1,18 +1,24 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AdolescentesModule } from './adolescentes/adolescentes.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: '192.141.168.47',
-      port: 3306,
-      username: 'educacion_gestion',
-      password: 'P2U*hsa1MK2R~£T%]w([',
-      database: 'alacern_alacert',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false,
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'mysql',
+        host: config.get('DB_HOST'),
+        port: parseInt(config.get<string>('DB_PORT') as string, 10),
+        username: config.get('DB_USERNAME'),
+        password: config.get('DB_PASSWORD'),
+        database: config.get('DB_NAME'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: false,
+      }),
     }),
     AdolescentesModule,
   ],
